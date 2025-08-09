@@ -1,0 +1,228 @@
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import type { Task, Category, TimeSession, DashboardStats } from '../types';
+
+interface TaskState {
+  tasks: Task[];
+  categories: Category[];
+  timeSessions: TimeSession[];
+  
+  // Task actions
+  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateTask: (id: string, updates: Partial<Task>) => void;
+  deleteTask: (id: string) => void;
+  toggleTask: (id: string) => void;
+  
+  // Subtask actions
+  addSubtask: (taskId: string, title: string) => void;
+  toggleSubtask: (taskId: string, subtaskId: string) => void;
+  deleteSubtask: (taskId: string, subtaskId: string) => void;
+  updateSubtask: (taskId: string, subtaskId: string, title: string) => void;
+  
+  // Category actions
+  addCategory: (category: Omit<Category, 'id'>) => void;
+  updateCategory: (id: string, updates: Partial<Category>) => void;
+  deleteCategory: (id: string) => void;
+  
+  // Time tracking actions
+  addTimeSession: (session: Omit<TimeSession, 'id'>) => void;
+  
+  // Stats getters
+  getDashboardStats: () => DashboardStats;
+  getTasksByCategory: (categoryId: string) => Task[];
+  getTodayTasks: () => Task[];
+}
+
+const defaultCategories: Category[] = [
+  { id: '1', name: 'Lavoro', color: '#3B82F6', icon: 'briefcase' },
+  { id: '2', name: 'Personale', color: '#10B981', icon: 'user' },
+  { id: '3', name: 'Apprendimento', color: '#F59E0B', icon: 'book-open' },
+  { id: '4', name: 'Salute', color: '#EF4444', icon: 'heart' },
+];
+
+export const useTaskStore = create<TaskState>()(
+  persist(
+    (set, get) => ({
+      tasks: [],
+      categories: defaultCategories,
+      timeSessions: [],
+
+      addTask: (taskData) => {
+        const newTask: Task = {
+          ...taskData,
+          id: crypto.randomUUID(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          subtasks: [],
+        };
+        set((state) => ({ tasks: [...state.tasks, newTask] }));
+      },
+
+      updateTask: (id, updates) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === id ? { ...task, ...updates, updatedAt: new Date() } : task
+          ),
+        }));
+      },
+
+      deleteTask: (id) => {
+        set((state) => ({
+          tasks: state.tasks.filter((task) => task.id !== id),
+        }));
+      },
+
+      toggleTask: (id) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === id
+              ? { ...task, completed: !task.completed, updatedAt: new Date() }
+              : task
+          ),
+        }));
+      },
+
+      addCategory: (categoryData) => {
+        const newCategory: Category = {
+          ...categoryData,
+          id: crypto.randomUUID(),
+        };
+        set((state) => ({ categories: [...state.categories, newCategory] }));
+      },
+
+      updateCategory: (id, updates) => {
+        set((state) => ({
+          categories: state.categories.map((category) =>
+            category.id === id ? { ...category, ...updates } : category
+          ),
+        }));
+      },
+
+      deleteCategory: (id) => {
+        set((state) => ({
+          categories: state.categories.filter((category) => category.id !== id),
+        }));
+      },
+
+      addTimeSession: (sessionData) => {
+        const newSession: TimeSession = {
+          ...sessionData,
+          id: crypto.randomUUID(),
+        };
+        set((state) => ({ timeSessions: [...state.timeSessions, newSession] }));
+      },
+
+      // Subtask actions
+      addSubtask: (taskId, title) => {
+        const newSubtask = {
+          id: crypto.randomUUID(),
+          title,
+          completed: false,
+          createdAt: new Date(),
+        };
+        
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === taskId
+              ? { 
+                  ...task, 
+                  subtasks: [...(task.subtasks || []), newSubtask],
+                  updatedAt: new Date()
+                }
+              : task
+          ),
+        }));
+      },
+
+      toggleSubtask: (taskId, subtaskId) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === taskId
+              ? {
+                  ...task,
+                  subtasks: task.subtasks?.map((subtask) =>
+                    subtask.id === subtaskId
+                      ? { ...subtask, completed: !subtask.completed }
+                      : subtask
+                  ),
+                  updatedAt: new Date()
+                }
+              : task
+          ),
+        }));
+      },
+
+      deleteSubtask: (taskId, subtaskId) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === taskId
+              ? {
+                  ...task,
+                  subtasks: task.subtasks?.filter((subtask) => subtask.id !== subtaskId),
+                  updatedAt: new Date()
+                }
+              : task
+          ),
+        }));
+      },
+
+      updateSubtask: (taskId, subtaskId, title) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === taskId
+              ? {
+                  ...task,
+                  subtasks: task.subtasks?.map((subtask) =>
+                    subtask.id === subtaskId
+                      ? { ...subtask, title }
+                      : subtask
+                  ),
+                  updatedAt: new Date()
+                }
+              : task
+          ),
+        }));
+      },
+
+      getDashboardStats: () => {
+        const { tasks, timeSessions } = get();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const todayTasks = tasks.filter(
+          (task) => task.createdAt >= today
+        );
+        
+        const totalTimeSpent = timeSessions.reduce(
+          (total, session) => total + session.duration / 60,
+          0
+        );
+
+        return {
+          totalTasks: tasks.length,
+          completedTasks: tasks.filter((task) => task.completed).length,
+          totalTimeSpent,
+          completionRate: tasks.length > 0 ? (tasks.filter((task) => task.completed).length / tasks.length) * 100 : 0,
+          todayTasks: todayTasks.length,
+          todayCompletedTasks: todayTasks.filter((task) => task.completed).length,
+        };
+      },
+
+      getTasksByCategory: (categoryId) => {
+        return get().tasks.filter((task) => task.category === categoryId);
+      },
+
+      getTodayTasks: () => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return get().tasks.filter(
+          (task) => task.createdAt >= today || (task.dueDate && task.dueDate >= today)
+        );
+      },
+    }),
+    {
+      name: 'tasky-storage',
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);
