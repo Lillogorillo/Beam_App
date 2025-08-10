@@ -14,6 +14,8 @@ import { useToast } from './hooks/useToast';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useTranslation } from './hooks/useTranslation';
 import { initializeSampleData } from './utils/sampleData';
+import { useAuthStore } from './store/useAuthStore';
+import { Auth } from './components/Auth';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -21,6 +23,7 @@ function App() {
   const { startTimer, pauseTimer, isRunning } = useTimerStore();
   const { toasts, removeToast, success } = useToast();
   const { t } = useTranslation();
+  const { token } = useAuthStore();
 
   // Initialize some sample data on first load
   useEffect(() => {
@@ -79,6 +82,10 @@ function App() {
     }
   };
 
+  if (!token) {
+    return <Auth />;
+  }
+  
   return (
     <div className="min-h-screen bg-gray-900 flex">
       <MobileOptimizations />

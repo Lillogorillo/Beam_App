@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Task, Category, TimeSession, DashboardStats } from '../types';
+import { tasksAPI, categoriesAPI, timeSessionsAPI } from '../config/api';
+import { useAuthStore } from './useAuthStore';
 
 interface TaskState {
   tasks: Task[];
@@ -56,6 +58,22 @@ export const useTaskStore = create<TaskState>()(
           subtasks: [],
         };
         set((state) => ({ tasks: [...state.tasks, newTask] }));
+        // Sync (best-effort)
+        const token = useAuthStore.getState().token;
+        if (token && import.meta.env.VITE_SUPABASE_URL) {
+          tasksAPI.create(
+            {
+              title: newTask.title,
+              description: newTask.description,
+              priority: newTask.priority,
+              category: newTask.category,
+              dueDate: newTask.dueDate?.toISOString(),
+              estimatedTime: newTask.estimatedTime,
+              completed: newTask.completed,
+            },
+            token
+          ).catch(() => {});
+        }
       },
 
       updateTask: (id, updates) => {
@@ -70,6 +88,10 @@ export const useTaskStore = create<TaskState>()(
         set((state) => ({
           tasks: state.tasks.filter((task) => task.id !== id),
         }));
+        const token = useAuthStore.getState().token;
+        if (token && import.meta.env.VITE_SUPABASE_URL) {
+          tasksAPI.delete(id, token).catch(() => {});
+        }
       },
 
       toggleTask: (id) => {
@@ -88,6 +110,10 @@ export const useTaskStore = create<TaskState>()(
           id: crypto.randomUUID(),
         };
         set((state) => ({ categories: [...state.categories, newCategory] }));
+        const token = useAuthStore.getState().token;
+        if (token && import.meta.env.VITE_SUPABASE_URL) {
+          categoriesAPI.create({ name: newCategory.name, color: newCategory.color }, token).catch(() => {});
+        }
       },
 
       updateCategory: (id, updates) => {
@@ -110,6 +136,19 @@ export const useTaskStore = create<TaskState>()(
           id: crypto.randomUUID(),
         };
         set((state) => ({ timeSessions: [...state.timeSessions, newSession] }));
+        const token = useAuthStore.getState().token;
+        if (token && import.meta.env.VITE_SUPABASE_URL) {
+          timeSessionsAPI.create(
+            {
+              taskId: newSession.taskId,
+              startTime: newSession.startTime,
+              endTime: newSession.endTime,
+              duration: newSession.duration,
+              type: newSession.type,
+            },
+            token
+          ).catch(() => {});
+        }
       },
 
       // Subtask actions
