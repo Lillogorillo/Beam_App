@@ -11,6 +11,7 @@ import {
   Target
 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
+import { useAuthStore } from '../store/useAuthStore';
 import { BeamLogo } from './BeamLogo';
 
 interface SidebarProps {
@@ -32,6 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange }) =
   const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { user, logout } = useAuthStore();
   
   const menuItems = getMenuItems(t);
 
@@ -125,12 +127,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange }) =
             <div className="p-4 border-t border-gray-700">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-medium">U</span>
+                  <span className="text-white font-medium">{(user?.name || user?.email || 'U').charAt(0).toUpperCase()}</span>
                 </div>
                 <div className="flex-1">
-                  <p className="text-white font-medium">User</p>
-                  <p className="text-gray-400 text-sm">user@example.com</p>
+                  <p className="text-white font-medium">{user?.name || 'Utente'}</p>
+                  <p className="text-gray-400 text-sm">{user?.email || ''}</p>
                 </div>
+              </div>
+              <div className="mt-3 flex gap-2">
+                <button onClick={logout} className="btn-secondary w-full">Logout</button>
               </div>
             </div>
           )}

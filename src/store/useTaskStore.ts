@@ -8,6 +8,7 @@ interface TaskState {
   tasks: Task[];
   categories: Category[];
   timeSessions: TimeSession[];
+  loadFromRemote: () => Promise<void>;
   
   // Task actions
   addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -49,6 +50,54 @@ export const useTaskStore = create<TaskState>()(
       categories: defaultCategories,
       timeSessions: [],
 
+      loadFromRemote: async () => {
+        const token = useAuthStore.getState().token;
+        if (!token || !import.meta.env.VITE_SUPABASE_URL) return;
+        try {
+          const tasksRes = await tasksAPI.getAll(token);
+          const categoriesRes = await categoriesAPI.getAll(token);
+          const timeSessionsRes = await timeSessionsAPI.getAll(token);
+
+          const remoteCategories: Category[] = (categoriesRes?.categories || []).map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            color: c.color || '#3B82F6',
+            icon: c.icon || 'folder',
+          }));
+
+          const categoryIdMap = new Map<string, string>();
+          remoteCategories.forEach(c => categoryIdMap.set(c.id, c.id));
+
+          const remoteTasks: Task[] = (tasksRes?.tasks || []).map((t: any) => ({
+            id: t.id,
+            title: t.title,
+            description: t.description || undefined,
+            completed: t.status === 'completed',
+            priority: (t.priority || 'medium') as 'low' | 'medium' | 'high',
+            category: t.category_id || '',
+            dueDate: t.due_date ? new Date(t.due_date) : undefined,
+            createdAt: t.created_at ? new Date(t.created_at) : new Date(),
+            updatedAt: t.updated_at ? new Date(t.updated_at) : new Date(),
+            estimatedTime: t.estimated_time || undefined,
+            actualTime: t.actual_time || undefined,
+            subtasks: [],
+          }));
+
+          const remoteSessions: TimeSession[] = (timeSessionsRes?.timeSessions || []).map((s: any) => ({
+            id: s.id,
+            taskId: s.task_id,
+            startTime: new Date(s.start_time),
+            endTime: s.end_time ? new Date(s.end_time) : undefined,
+            duration: s.duration || 0,
+            type: 'work',
+          }));
+
+          set({ tasks: remoteTasks, categories: remoteCategories, timeSessions: remoteSessions });
+        } catch {
+          // fallback silently
+        }
+      },
+
       addTask: (taskData) => {
         const newTask: Task = {
           ...taskData,
@@ -82,6 +131,25 @@ export const useTaskStore = create<TaskState>()(
             task.id === id ? { ...task, ...updates, updatedAt: new Date() } : task
           ),
         }));
+        const token = useAuthStore.getState().token;
+        if (token && import.meta.env.VITE_SUPABASE_URL) {
+          const payload: any = {
+            id,
+            title: updates.title,
+            description: updates.description,
+            category_id: updates.category,
+            priority: updates.priority,
+            due_date: updates.dueDate ? new Date(updates.dueDate).toISOString() : undefined,
+            status: updates.completed === true ? 'completed' : updates.completed === false ? 'pending' : undefined,
+          };
+          // Clean undefined
+          Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
+          fetch(`${import.meta.env.VITE_SUPABASE_URL.replace('.supabase.co', '.supabase.co/functions/v1')}/tasks/tasks`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify(payload),
+          }).catch(() => {});
+        }
       },
 
       deleteTask: (id) => {
@@ -102,6 +170,16 @@ export const useTaskStore = create<TaskState>()(
               : task
           ),
         }));
+        const token = useAuthStore.getState().token;
+        if (token && import.meta.env.VITE_SUPABASE_URL) {
+          const task = get().tasks.find(t => t.id === id);
+          const status = task && !task.completed ? 'completed' : 'pending';
+          fetch(`${import.meta.env.VITE_SUPABASE_URL.replace('.supabase.co', '.supabase.co/functions/v1')}/tasks/tasks`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ id, status }),
+          }).catch(() => {});
+        }
       },
 
       addCategory: (categoryData) => {
