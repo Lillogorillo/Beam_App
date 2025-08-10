@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { authAPI } from '../config/api';
+import { supabase } from '../config/supabaseClient';
 
 interface AuthUser {
   id: string;
@@ -29,6 +30,17 @@ export const useAuthStore = create<AuthState>()(
       async login(email: string, password: string) {
         try {
           set({ isAuthenticating: true, error: null });
+          // Primo tentativo: Supabase Auth client (diretto)
+          if (supabase) {
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (!error && data?.session?.access_token) {
+              const accessToken = data.session.access_token;
+              const user: AuthUser | null = data.user ? { id: data.user.id, email: data.user.email!, name: (data.user.user_metadata as any)?.name } : null;
+              set({ token: accessToken, user, isAuthenticating: false });
+              return;
+            }
+          }
+          // Fallback: Edge Function auth/login
           const res = await authAPI.login({ email, password });
           const accessToken: string | undefined = res?.session?.access_token;
           const user: AuthUser | null = res?.user
