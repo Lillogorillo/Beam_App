@@ -4,12 +4,14 @@ export const API_BASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace('.supabas
 // Funzioni helper per le chiamate API
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   const url = `${API_BASE_URL}/${endpoint}`;
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
   
-  console.log('API Call:', { endpoint, url, API_BASE_URL, options: { ...options, body: options.body ? 'HIDDEN' : undefined } });
+  console.log('API Call:', { endpoint, url, API_BASE_URL, hasAnonKey: !!anonKey, options: { ...options, body: options.body ? 'HIDDEN' : undefined } });
   
   const defaultOptions: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${anonKey}`,
       ...options.headers,
     },
     ...options,

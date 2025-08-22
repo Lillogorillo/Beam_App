@@ -19,7 +19,7 @@ export const translations = {
     completed: 'Completate',
     timeSpent: 'Tempo Speso',
     completionRate: 'Tasso Completamento',
-    pomodoroTimer: 'Timer Pomodoro',
+    pomodoroTimer: 'Focus Timer',
     session: 'Sessione',
     workSession: 'Sessione Lavoro',
     shortBreak: 'Pausa Breve',
@@ -78,9 +78,9 @@ export const translations = {
 
   // Timer
   timer: {
-    title: 'Timer Pomodoro',
-    subtitle: 'Rimani concentrato con la Tecnica del Pomodoro.',
-    pomodoroTimer: 'Timer Pomodoro',
+    title: 'Focus Timer',
+    subtitle: 'Rimani concentrato con sessioni di lavoro focalizzato.',
+    pomodoroTimer: 'Focus Timer',
     session: 'Sessione',
     workSession: 'Sessione di Lavoro',
     completed: 'Completate',
@@ -168,7 +168,7 @@ export const translations = {
   settings: {
     title: 'Impostazioni',
     subtitle: 'Personalizza la tua esperienza con Beam.',
-    pomodoroSettings: 'Impostazioni Timer Pomodoro',
+    pomodoroSettings: 'Impostazioni Focus Timer',
     workDuration: 'Durata Lavoro (minuti)',
     shortBreak: 'Pausa Breve (minuti)',
     longBreak: 'Pausa Lunga (minuti)',

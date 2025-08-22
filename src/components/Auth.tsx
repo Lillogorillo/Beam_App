@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 
 export const Auth: React.FC = () => {
-  const { login, register, isAuthenticating, error } = useAuthStore();
+  const { login, register, isAuthenticating, error, success, clearMessages } = useAuthStore();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -50,12 +50,16 @@ export const Auth: React.FC = () => {
         </div>
 
         {error && <div className="text-red-400 text-sm">{error}</div>}
+        {success && <div className="text-green-400 text-sm">{success}</div>}
 
         <button disabled={isAuthenticating} type="submit" className="btn-primary w-full">
           {isAuthenticating ? 'Attendere...' : (mode === 'login' ? 'Accedi' : 'Registrati')}
         </button>
 
-        <button type="button" className="btn-secondary w-full" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
+        <button type="button" className="btn-secondary w-full" onClick={() => {
+          setMode(mode === 'login' ? 'register' : 'login');
+          clearMessages();
+        }}>
           {mode === 'login' ? 'Crea un account' : 'Hai già un account? Accedi'}
         </button>
       </form>

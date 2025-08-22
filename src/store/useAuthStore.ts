@@ -14,9 +14,11 @@ interface AuthState {
   user: AuthUser | null;
   isAuthenticating: boolean;
   error: string | null;
+  success: string | null;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  clearMessages: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -26,11 +28,12 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticating: false,
       error: null,
+      success: null,
 
       async login(email: string, password: string) {
         try {
           console.log('Login attempt started', { email, supabaseAvailable: !!supabase });
-          set({ isAuthenticating: true, error: null });
+          set({ isAuthenticating: true, error: null, success: null });
           
           // Primo tentativo: Supabase Auth client (diretto)
           if (supabase) {
@@ -73,7 +76,7 @@ export const useAuthStore = create<AuthState>()(
       async register(name: string, email: string, password: string) {
         try {
           console.log('Registration attempt started', { name, email, supabaseAvailable: !!supabase });
-          set({ isAuthenticating: true, error: null });
+          set({ isAuthenticating: true, error: null, success: null });
           
           // Primo tentativo: Supabase Auth client (diretto)
           if (supabase) {
@@ -101,7 +104,8 @@ export const useAuthStore = create<AuthState>()(
               } else {
                 // Utente creato ma deve confermare email
                 set({ 
-                  error: 'Registrazione completata! Controlla la tua email per confermare l\'account, poi effettua il login.', 
+                  success: 'Registrazione completata! Controlla la tua email per confermare l\'account, poi effettua il login.', 
+                  error: null,
                   isAuthenticating: false 
                 });
                 return;
@@ -129,7 +133,11 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout() {
-        set({ token: null, user: null });
+        set({ token: null, user: null, error: null, success: null });
+      },
+
+      clearMessages() {
+        set({ error: null, success: null });
       },
     }),
     {

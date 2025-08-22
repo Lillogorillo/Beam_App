@@ -125,35 +125,61 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange }) =
           </nav>
 
           {/* User Profile */}
-          {!isCollapsed && (
-            <div className="p-4 border-t border-gray-700">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
+          <div className="p-4 border-t border-gray-700">
+            {!isCollapsed ? (
+              // Expanded user profile
+              <>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
+                    <span className="text-white font-medium">{(user?.name || user?.email || 'U').charAt(0).toUpperCase()}</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-white font-medium">{user?.name || 'Utente'}</p>
+                    <p className="text-gray-400 text-sm">{user?.email || ''}</p>
+                  </div>
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <button 
+                    onClick={() => onPageChange('profile')} 
+                    className="btn-secondary flex-1 flex items-center justify-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    Profile
+                  </button>
+                  <button 
+                    onClick={logout} 
+                    className="btn-secondary flex-1 flex items-center justify-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </button>
+                </div>
+              </>
+            ) : (
+              // Collapsed user profile - just icons
+              <div className="space-y-2">
+                <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center mx-auto">
                   <span className="text-white font-medium">{(user?.name || user?.email || 'U').charAt(0).toUpperCase()}</span>
                 </div>
-                <div className="flex-1">
-                  <p className="text-white font-medium">{user?.name || 'Utente'}</p>
-                  <p className="text-gray-400 text-sm">{user?.email || ''}</p>
+                <div className="flex flex-col gap-2">
+                  <button 
+                    onClick={() => onPageChange('profile')} 
+                    className="p-2 hover:bg-gray-700 rounded-md transition-colors flex items-center justify-center"
+                    title="Profile"
+                  >
+                    <User className="w-4 h-4 text-gray-300" />
+                  </button>
+                  <button 
+                    onClick={logout} 
+                    className="p-2 hover:bg-gray-700 rounded-md transition-colors flex items-center justify-center"
+                    title="Logout"
+                  >
+                    <LogOut className="w-4 h-4 text-gray-300" />
+                  </button>
                 </div>
               </div>
-              <div className="mt-3 flex gap-2">
-                <button 
-                  onClick={() => onPageChange('profile')} 
-                  className="btn-secondary flex-1 flex items-center justify-center gap-2"
-                >
-                  <User className="w-4 h-4" />
-                  Profile
-                </button>
-                <button 
-                  onClick={logout} 
-                  className="btn-secondary flex-1 flex items-center justify-center gap-2"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Logout
-                </button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </>
