@@ -1,0 +1,51 @@
+plugins {
+    id 'com.android.application'
+    id 'com.google.androidbrowserhelper'
+}
+
+android {
+    compileSdk 34
+    
+    defaultConfig {
+        applicationId "app.vercel.beam"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+    
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+twa {
+    hostName = "beam-app-phi.vercel.app"
+    launchUrl = "/"
+    name = "Beam - Productivity & Focus"
+    themeColor = "#3b82f6"
+    navigationColor = "#3b82f6"
+    backgroundColor = "#ffffff"
+    enableNotifications = true
+    
+    shortcuts {
+        shortcut {
+            name = "Dashboard"
+            shortName = "Dashboard"
+            url = "/"
+            iconUrl = "https://beam-app-phi.vercel.app/logo.svg"
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.browser:browser:1.7.0'
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+}

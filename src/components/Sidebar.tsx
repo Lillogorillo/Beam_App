@@ -8,7 +8,9 @@ import {
   Menu,
   X,
   Clock,
-  Target
+  Target,
+  User,
+  LogOut
 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useAuthStore } from '../store/useAuthStore';
@@ -135,7 +137,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange }) =
                 </div>
               </div>
               <div className="mt-3 flex gap-2">
-                <button onClick={logout} className="btn-secondary w-full">Logout</button>
+                <button 
+                  onClick={() => onPageChange('profile')} 
+                  className="btn-secondary flex-1 flex items-center justify-center gap-2"
+                >
+                  <User className="w-4 h-4" />
+                  Profile
+                </button>
+                <button 
+                  onClick={logout} 
+                  className="btn-secondary flex-1 flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
               </div>
             </div>
           )}

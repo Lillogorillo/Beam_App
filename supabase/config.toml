@@ -123,6 +123,4 @@ template = "Your code is {{ .Code }}"
 # # or any other third-party OIDC providers.
 # url = ""
 
-[functions]
-# Path to import map used by Edge Functions
-import_map = "./supabase/functions/import_map.json"
+# Remove custom import_map section to use defaults compatible with CLI

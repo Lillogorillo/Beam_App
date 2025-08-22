@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Beam - Productivity &amp; Focus</string>
+    <string name="launcherName">Beam</string>
+    <string name="hostName">beam-app-phi.vercel.app</string>
+    <string name="launchUrl">/</string>
+    <string name="themeColor">#3b82f6</string>
+    <string name="navigationColor">#3b82f6</string>
+    <string name="backgroundColor">#ffffff</string>
+    <string name="enableNotifications">true</string>
+</resources>

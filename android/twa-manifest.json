@@ -1,0 +1,26 @@
+{
+  "packageId": "app.vercel.beam",
+  "host": {
+    "name": "beam-app-phi.vercel.app",
+    "url": "https://beam-app-phi.vercel.app"
+  },
+  "name": "Beam - Productivity & Focus",
+  "launcherName": "Beam",
+  "display": "standalone",
+  "themeColor": "#3b82f6",
+  "navigationColor": "#3b82f6",
+  "backgroundColor": "#ffffff",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://beam-app-phi.vercel.app/logo.svg",
+  "maskableIconUrl": "https://beam-app-phi.vercel.app/logo.svg",
+  "shortcuts": [],
+  "enableSiteSettingsShortcut": true,
+  "orientation": "portrait",
+  "fingerprints": [
+    {
+      "name": "SHA-256",
+      "value": "REPLACE_WITH_ACTUAL_SHA256_FINGERPRINT"
+    }
+  ]
+}

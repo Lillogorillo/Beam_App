@@ -16,10 +16,11 @@ import { useTranslation } from './hooks/useTranslation';
 import { initializeSampleData } from './utils/sampleData';
 import { useAuthStore } from './store/useAuthStore';
 import { Auth } from './components/Auth';
+import { Profile } from './components/Profile';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
-  const { addTask } = useTaskStore();
+  const { addTask, loadFromRemote } = useTaskStore();
   const { startTimer, pauseTimer, isRunning } = useTimerStore();
   const { toasts, removeToast, success } = useToast();
   const { t } = useTranslation();
@@ -32,6 +33,12 @@ function App() {
       initializeSampleData(addTask);
     }
   }, [addTask]);
+
+  useEffect(() => {
+    if (token) {
+      loadFromRemote();
+    }
+  }, [token, loadFromRemote]);
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
@@ -77,6 +84,8 @@ function App() {
         return <Analytics />;
       case 'settings':
         return <Settings />;
+      case 'profile':
+        return <Profile onClose={() => setCurrentPage('dashboard')} />;
       default:
         return <Dashboard />;
     }

@@ -6,11 +6,54 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "electron:dev": "cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .",
+    "electron:build": "vite build && electron-builder -w",
     "lint": "eslint .",
     "preview": "vite preview",
     "vercel-build": "npm run build"
   },
+  "main": "electron/main.cjs",
+  "build": {
+    "appId": "com.beam.app",
+    "productName": "Beam",
+    "files": [
+      "dist/**",
+      "electron/**",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Utility"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Lillogorillo",
+        "repo": "Beam_App"
+      }
+    ]
+  },
   "dependencies": {
+    "@supabase/supabase-js": "^2.54.0",
     "@types/node": "^24.2.1",
     "@types/react-router-dom": "^5.3.3",
     "date-fns": "^4.1.0",
@@ -27,6 +70,9 @@
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.21",
+    "cross-env": "^7.0.3",
+    "electron": "^33.2.0",
+    "electron-builder": "^24.13.3",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
