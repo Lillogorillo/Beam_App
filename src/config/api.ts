@@ -5,6 +5,8 @@ export const API_BASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace('.supabas
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   const url = `${API_BASE_URL}/${endpoint}`;
   
+  console.log('API Call:', { endpoint, url, API_BASE_URL, options: { ...options, body: options.body ? 'HIDDEN' : undefined } });
+  
   const defaultOptions: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
@@ -15,15 +17,19 @@ export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
 
   try {
     const response = await fetch(url, defaultOptions);
+    console.log('API Response:', { status: response.status, ok: response.ok, endpoint });
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('API Error Response:', errorData);
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
     
-    return await response.json();
+    const result = await response.json();
+    console.log('API Success:', { endpoint, result: result ? 'RECEIVED' : 'EMPTY' });
+    return result;
   } catch (error) {
-    console.error('API call failed:', error);
+    console.error('API call failed:', { endpoint, error });
     throw error;
   }
 };

@@ -10,10 +10,20 @@ export const Auth: React.FC = () => {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (mode === 'login') {
-      await login(email, password);
-    } else {
-      await register(name, email, password);
+    console.log('Auth attempt:', { mode, email });
+    
+    try {
+      if (mode === 'login') {
+        console.log('Attempting login...');
+        await login(email, password);
+        console.log('Login successful!');
+      } else {
+        console.log('Attempting registration...');
+        await register(name, email, password);
+        console.log('Registration successful!');
+      }
+    } catch (err) {
+      console.error('Auth error:', err);
     }
   };
 
