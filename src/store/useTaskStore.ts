@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Task, Category, TimeSession, DashboardStats } from '../types';
 import { tasksAPI, categoriesAPI, timeSessionsAPI } from '../config/api';
 import { useAuthStore } from './useAuthStore';
+import { playSound } from '../utils/sounds';
 
 interface TaskState {
   tasks: Task[];
@@ -15,6 +16,7 @@ interface TaskState {
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   toggleTask: (id: string) => void;
+  playCompletionSound?: () => void;
   
   // Subtask actions
   addSubtask: (taskId: string, title: string) => void;
@@ -163,6 +165,9 @@ export const useTaskStore = create<TaskState>()(
       },
 
       toggleTask: (id) => {
+        const currentTask = get().tasks.find(t => t.id === id);
+        const willBeCompleted = currentTask && !currentTask.completed;
+        
         set((state) => ({
           tasks: state.tasks.map((task) =>
             task.id === id
@@ -170,6 +175,11 @@ export const useTaskStore = create<TaskState>()(
               : task
           ),
         }));
+        
+        // Play completion sound when task is completed
+        if (willBeCompleted) {
+          playSound('complete');
+        }
         const token = useAuthStore.getState().token;
         if (token && import.meta.env.VITE_SUPABASE_URL) {
           const task = get().tasks.find(t => t.id === id);

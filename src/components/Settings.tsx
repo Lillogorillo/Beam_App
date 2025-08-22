@@ -12,6 +12,7 @@ import {
 import { useTaskStore } from '../store/useTaskStore';
 import { useTimerStore } from '../store/useTimerStore';
 import { useTranslation } from '../hooks/useTranslation';
+import { enableSounds, testSound } from '../utils/sounds';
 
 export const Settings: React.FC = () => {
   const { tasks, categories, addTask, addCategory } = useTaskStore();
@@ -23,6 +24,11 @@ export const Settings: React.FC = () => {
     Notification.permission === 'granted'
   );
   const [soundEnabled, setSoundEnabled] = useState(true);
+  
+  const handleSoundToggle = (enabled: boolean) => {
+    setSoundEnabled(enabled);
+    enableSounds(enabled);
+  };
 
 
   const handleSaveTimerSettings = () => {
@@ -214,7 +220,7 @@ export const Settings: React.FC = () => {
               <p className="text-sm text-gray-400">{t('settings.soundDescription')}</p>
             </div>
             <button
-              onClick={() => setSoundEnabled(!soundEnabled)}
+              onClick={() => handleSoundToggle(!soundEnabled)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                 soundEnabled 
                   ? 'bg-green-600 hover:bg-green-700 text-white' 
@@ -224,6 +230,14 @@ export const Settings: React.FC = () => {
               {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
               {soundEnabled ? t('settings.enabled') : t('settings.disabled')}
             </button>
+            {soundEnabled && (
+              <button
+                onClick={testSound}
+                className="ml-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm"
+              >
+                Test Sound
+              </button>
+            )}
           </div>
         </div>
       </div>

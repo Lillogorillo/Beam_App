@@ -12,6 +12,7 @@ import {
 import { useTimerStore } from '../store/useTimerStore';
 import { useTaskStore } from '../store/useTaskStore';
 import { useNotifications } from '../hooks/useNotifications';
+import { playSound } from '../utils/sounds';
 import { useTranslation } from '../hooks/useTranslation';
 
 export const Timer: React.FC = () => {
@@ -34,7 +35,7 @@ export const Timer: React.FC = () => {
   } = useTimerStore();
 
   const { tasks, addTimeSession } = useTaskStore();
-  const { showNotification, playSound } = useNotifications();
+  const { showNotification } = useNotifications();
   const { t } = useTranslation();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showSettings, setShowSettings] = useState(false);

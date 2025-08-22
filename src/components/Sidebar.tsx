@@ -111,7 +111,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange }) =
                       className={`
                         sidebar-item w-full text-left
                         ${isActive ? 'active' : 'text-gray-300 hover:text-white'}
-                        ${isCollapsed ? 'justify-center px-2' : ''}
+                        ${isCollapsed ? 'collapsed' : ''}
                       `}
                       title={isCollapsed ? item.label : undefined}
                     >
