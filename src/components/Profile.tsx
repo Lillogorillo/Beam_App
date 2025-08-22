@@ -10,7 +10,7 @@ interface ProfileProps {
 
 export const Profile: React.FC<ProfileProps> = ({ onClose }) => {
   const { user } = useAuthStore();
-  const { showToast } = useToast();
+  const { success: showSuccess, error: showError } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -22,7 +22,12 @@ export const Profile: React.FC<ProfileProps> = ({ onClose }) => {
 
   const handleEmailChange = async () => {
     if (!formData.email || formData.email === user?.email) {
-      showToast('Please enter a new email address', 'error');
+      showError('Please enter a new email address');
+      return;
+    }
+
+    if (!supabase) {
+      showError('Supabase client not available');
       return;
     }
 
@@ -34,10 +39,10 @@ export const Profile: React.FC<ProfileProps> = ({ onClose }) => {
 
       if (error) throw error;
       
-      showToast('Email update request sent! Please check your new email to confirm.', 'success');
+      showSuccess('Email update request sent! Please check your new email to confirm.');
       setFormData(prev => ({ ...prev, email: user?.email || '' }));
     } catch (error) {
-      showToast('Failed to update email: ' + (error as Error).message, 'error');
+      showError('Failed to update email: ' + (error as Error).message);
     } finally {
       setIsLoading(false);
     }
@@ -45,17 +50,22 @@ export const Profile: React.FC<ProfileProps> = ({ onClose }) => {
 
   const handlePasswordChange = async () => {
     if (!formData.currentPassword || !formData.newPassword) {
-      showToast('Please fill in all password fields', 'error');
+      showError('Please fill in all password fields');
       return;
     }
 
     if (formData.newPassword !== formData.confirmPassword) {
-      showToast('New passwords do not match', 'error');
+      showError('New passwords do not match');
       return;
     }
 
     if (formData.newPassword.length < 6) {
-      showToast('Password must be at least 6 characters long', 'error');
+      showError('Password must be at least 6 characters long');
+      return;
+    }
+
+    if (!supabase) {
+      showError('Supabase client not available');
       return;
     }
 
@@ -67,7 +77,7 @@ export const Profile: React.FC<ProfileProps> = ({ onClose }) => {
 
       if (error) throw error;
       
-      showToast('Password updated successfully!', 'success');
+      showSuccess('Password updated successfully!');
       setFormData(prev => ({
         ...prev,
         currentPassword: '',
@@ -75,7 +85,7 @@ export const Profile: React.FC<ProfileProps> = ({ onClose }) => {
         confirmPassword: ''
       }));
     } catch (error) {
-      showToast('Failed to update password: ' + (error as Error).message, 'error');
+      showError('Failed to update password: ' + (error as Error).message);
     } finally {
       setIsLoading(false);
     }

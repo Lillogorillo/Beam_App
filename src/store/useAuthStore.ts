@@ -7,6 +7,7 @@ interface AuthUser {
   id: string;
   email: string;
   name?: string;
+  last_sign_in_at?: string;
 }
 
 interface AuthState {
@@ -43,7 +44,12 @@ export const useAuthStore = create<AuthState>()(
             
             if (!error && data?.session?.access_token) {
               const accessToken = data.session.access_token;
-              const user: AuthUser | null = data.user ? { id: data.user.id, email: data.user.email!, name: (data.user.user_metadata as any)?.name } : null;
+              const user: AuthUser | null = data.user ? { 
+                id: data.user.id, 
+                email: data.user.email!, 
+                name: (data.user.user_metadata as any)?.name,
+                last_sign_in_at: data.user.last_sign_in_at 
+              } : null;
               console.log('Login successful via Supabase direct', { user });
               set({ token: accessToken, user, isAuthenticating: false });
               return;
@@ -60,7 +66,12 @@ export const useAuthStore = create<AuthState>()(
           
           const accessToken: string | undefined = res?.session?.access_token;
           const user: AuthUser | null = res?.user
-            ? { id: res.user.id, email: res.user.email, name: (res.user.user_metadata as any)?.name }
+            ? { 
+                id: res.user.id, 
+                email: res.user.email, 
+                name: (res.user.user_metadata as any)?.name,
+                last_sign_in_at: res.user.last_sign_in_at 
+              }
             : null;
           if (!accessToken) throw new Error('Token non ricevuto');
           
@@ -96,7 +107,8 @@ export const useAuthStore = create<AuthState>()(
                 const user: AuthUser = {
                   id: data.user.id,
                   email: data.user.email!,
-                  name: data.user.user_metadata?.name || name
+                  name: data.user.user_metadata?.name || name,
+                  last_sign_in_at: data.user.last_sign_in_at
                 };
                 console.log('Registration and login successful via Supabase direct', { user });
                 set({ token: data.session.access_token, user, isAuthenticating: false });
