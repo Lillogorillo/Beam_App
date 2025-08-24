@@ -16,10 +16,23 @@
   "build": {
     "appId": "com.beam.app",
     "productName": "Beam",
+    "directories": {
+      "output": "dist-electron"
+    },
     "files": [
-      "dist/**",
-      "electron/**",
-      "package.json"
+      "dist/**/*",
+      "electron/**/*",
+      "package.json",
+      "!node_modules/**/*",
+      "!src/**/*",
+      "!public/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "dist",
+        "to": "dist",
+        "filter": ["**/*"]
+      }
     ],
     "win": {
       "target": [

@@ -6,7 +6,7 @@ process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
 let mainWindow;
 
-function createMainWindow() {
+async function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -26,9 +26,36 @@ function createMainWindow() {
 
   if (isDev) {
     mainWindow.loadURL(devUrl);
+    mainWindow.webContents.openDevTools();
   } else {
-    const indexPath = path.join(__dirname, '../dist/index.html');
-    mainWindow.loadFile(indexPath);
+    // In production, try multiple paths
+    const possiblePaths = [
+      path.join(__dirname, '../dist/index.html'),  // Development structure
+      path.join(__dirname, 'dist/index.html'),     // App.asar structure
+      path.join(process.resourcesPath, 'dist/index.html'), // Resources path
+      path.join(app.getAppPath(), 'dist/index.html')       // App path
+    ];
+    
+    let loaded = false;
+    for (const indexPath of possiblePaths) {
+      try {
+        console.log('Trying to load:', indexPath);
+        if (require('fs').existsSync(indexPath)) {
+          await mainWindow.loadFile(indexPath);
+          console.log('Successfully loaded from:', indexPath);
+          loaded = true;
+          break;
+        }
+      } catch (error) {
+        console.error('Failed to load from', indexPath, ':', error);
+      }
+    }
+    
+    if (!loaded) {
+      console.error('Could not find index.html in any expected location');
+      // Last resort: load from web
+      mainWindow.loadURL('https://beam-app-phi.vercel.app');
+    }
   }
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {

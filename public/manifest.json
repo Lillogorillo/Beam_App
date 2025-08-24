@@ -1,16 +1,58 @@
 {
-  "name": "Beam",
+  "name": "Beam - Task Manager & Productivity App",
   "short_name": "Beam",
+  "description": "Professional task management and productivity app with Pomodoro timer, analytics, and cross-device sync",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#111827",
-  "theme_color": "#111827",
+  "theme_color": "#2563eb",
+  "lang": "it-IT",
+  "categories": ["productivity", "business", "utilities"],
   "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
     {
       "src": "/logo.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
-      "purpose": "any"
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nuova Attività",
+      "short_name": "Nuova",
+      "description": "Crea una nuova attività",
+      "url": "/?action=new-task",
+      "icons": [{ "src": "/logo.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Timer Focus",
+      "short_name": "Timer",
+      "description": "Avvia il timer Pomodoro",
+      "url": "/?page=timer",
+      "icons": [{ "src": "/logo.svg", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/logo.svg",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "Dashboard principale con statistiche e timer"
     }
   ]
 }
