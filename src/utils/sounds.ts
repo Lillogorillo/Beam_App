@@ -65,3 +65,4 @@ export const enableSounds = (enabled: boolean) => {
 export const testSound = () => {
   playSound('success');
 };
+

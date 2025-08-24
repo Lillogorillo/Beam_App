@@ -52,12 +52,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onPageChange }) => {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white">{t('dashboard.title')}</h1>
-          <p className="text-gray-400 mt-1">{t('dashboard.subtitle')}</p>
+        <div className="px-1">
+          <h1 className="text-2xl md:text-3xl font-bold text-white break-words">{t('dashboard.title')}</h1>
+          <p className="text-gray-400 mt-1 text-sm md:text-base">{t('dashboard.subtitle')}</p>
         </div>
         <button 
           onClick={() => onPageChange?.('tasks')}

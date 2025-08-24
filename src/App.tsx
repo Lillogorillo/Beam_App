@@ -40,6 +40,33 @@ function App() {
     }
   }, [token, loadFromRemote]);
 
+  // Auto-refresh data when app comes back into focus (cross-device sync)
+  useEffect(() => {
+    if (!token) return;
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden && token) {
+        console.log('🔄 App back in focus - refreshing data for cross-device sync');
+        loadFromRemote().catch(console.error);
+      }
+    };
+
+    const handleFocus = () => {
+      if (token) {
+        console.log('🔄 Window focused - refreshing data for cross-device sync');
+        loadFromRemote().catch(console.error);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [token, loadFromRemote]);
+
   // Keyboard shortcuts
   useKeyboardShortcuts({
     onNewTask: () => {
