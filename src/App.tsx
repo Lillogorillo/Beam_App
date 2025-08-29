@@ -67,6 +67,20 @@ function App() {
     };
   }, [token, loadFromRemote]);
 
+  // Periodic sync every 30 seconds for cross-device sync
+  useEffect(() => {
+    if (!token) return;
+
+    const interval = setInterval(() => {
+      if (token && !document.hidden) {
+        console.log('⏰ Periodic sync - refreshing data for cross-device sync');
+        loadFromRemote().catch(console.error);
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [token, loadFromRemote]);
+
   // Keyboard shortcuts
   useKeyboardShortcuts({
     onNewTask: () => {

@@ -22,15 +22,12 @@
     "files": [
       "dist/**/*",
       "electron/**/*",
-      "package.json",
-      "!node_modules/**/*",
-      "!src/**/*",
-      "!public/**/*"
+      "package.json"
     ],
     "extraResources": [
       {
         "from": "dist",
-        "to": "dist",
+        "to": "app/dist",
         "filter": ["**/*"]
       }
     ],

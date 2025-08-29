@@ -12,10 +12,10 @@ interface TaskState {
   loadFromRemote: () => Promise<void>;
   
   // Task actions
-  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateTask: (id: string, updates: Partial<Task>) => void;
-  deleteTask: (id: string) => void;
-  toggleTask: (id: string) => void;
+  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
+  toggleTask: (id: string) => Promise<void>;
   playCompletionSound?: () => void;
   
   // Subtask actions
@@ -54,11 +54,25 @@ export const useTaskStore = create<TaskState>()(
 
       loadFromRemote: async () => {
         const token = useAuthStore.getState().token;
-        if (!token || !import.meta.env.VITE_SUPABASE_URL) return;
+        if (!token || !import.meta.env.VITE_SUPABASE_URL) {
+          console.log('🚫 Sync skipped: no token or Supabase URL');
+          return;
+        }
+        
+        console.log('🔄 Loading data from remote...');
+        
         try {
-          const tasksRes = await tasksAPI.getAll(token);
-          const categoriesRes = await categoriesAPI.getAll(token);
-          const timeSessionsRes = await timeSessionsAPI.getAll(token);
+          const [tasksRes, categoriesRes, timeSessionsRes] = await Promise.all([
+            tasksAPI.getAll(token),
+            categoriesAPI.getAll(token),
+            timeSessionsAPI.getAll(token)
+          ]);
+
+          console.log('📥 Remote data received:', {
+            tasks: tasksRes?.tasks?.length || 0,
+            categories: categoriesRes?.categories?.length || 0,
+            sessions: timeSessionsRes?.timeSessions?.length || 0
+          });
 
           const remoteCategories: Category[] = (categoriesRes?.categories || []).map((c: any) => ({
             id: c.id,
@@ -66,9 +80,6 @@ export const useTaskStore = create<TaskState>()(
             color: c.color || '#3B82F6',
             icon: c.icon || 'folder',
           }));
-
-          const categoryIdMap = new Map<string, string>();
-          remoteCategories.forEach(c => categoryIdMap.set(c.id, c.id));
 
           const remoteTasks: Task[] = (tasksRes?.tasks || []).map((t: any) => ({
             id: t.id,
@@ -95,12 +106,13 @@ export const useTaskStore = create<TaskState>()(
           }));
 
           set({ tasks: remoteTasks, categories: remoteCategories, timeSessions: remoteSessions });
-        } catch {
-          // fallback silently
+          console.log('✅ Data synced successfully!');
+        } catch (error) {
+          console.error('❌ Sync failed:', error);
         }
       },
 
-      addTask: (taskData) => {
+      addTask: async (taskData) => {
         const newTask: Task = {
           ...taskData,
           id: crypto.randomUUID(),
@@ -109,62 +121,91 @@ export const useTaskStore = create<TaskState>()(
           subtasks: [],
         };
         set((state) => ({ tasks: [...state.tasks, newTask] }));
-        // Sync (best-effort)
+        console.log('📝 Task added locally:', newTask.title);
+        
+        // Sync to server and refresh
         const token = useAuthStore.getState().token;
         if (token && import.meta.env.VITE_SUPABASE_URL) {
-          tasksAPI.create(
-            {
-              title: newTask.title,
-              description: newTask.description,
-              priority: newTask.priority,
-              category: newTask.category,
-              dueDate: newTask.dueDate?.toISOString(),
-              estimatedTime: newTask.estimatedTime,
-              completed: newTask.completed,
-            },
-            token
-          ).catch(() => {});
+          try {
+            await tasksAPI.create(
+              {
+                title: newTask.title,
+                description: newTask.description,
+                priority: newTask.priority,
+                category: newTask.category,
+                dueDate: newTask.dueDate?.toISOString(),
+                estimatedTime: newTask.estimatedTime,
+                completed: newTask.completed,
+              },
+              token
+            );
+            console.log('🔄 Task synced to server, refreshing all data...');
+            // Refresh data to ensure cross-device sync
+            get().loadFromRemote();
+          } catch (error) {
+            console.error('❌ Failed to sync task to server:', error);
+          }
         }
       },
 
-      updateTask: (id, updates) => {
+      updateTask: async (id, updates) => {
         set((state) => ({
           tasks: state.tasks.map((task) =>
             task.id === id ? { ...task, ...updates, updatedAt: new Date() } : task
           ),
         }));
+        console.log('✏️ Task updated locally:', id);
+        
         const token = useAuthStore.getState().token;
         if (token && import.meta.env.VITE_SUPABASE_URL) {
-          const payload: any = {
-            id,
-            title: updates.title,
-            description: updates.description,
-            category_id: updates.category,
-            priority: updates.priority,
-            due_date: updates.dueDate ? new Date(updates.dueDate).toISOString() : undefined,
-            status: updates.completed === true ? 'completed' : updates.completed === false ? 'pending' : undefined,
-          };
-          // Clean undefined
-          Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
-          fetch(`${import.meta.env.VITE_SUPABASE_URL.replace('.supabase.co', '.supabase.co/functions/v1')}/tasks/tasks`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify(payload),
-          }).catch(() => {});
+          try {
+            const payload: any = {
+              id,
+              title: updates.title,
+              description: updates.description,
+              category_id: updates.category,
+              priority: updates.priority,
+              due_date: updates.dueDate ? new Date(updates.dueDate).toISOString() : undefined,
+              status: updates.completed === true ? 'completed' : updates.completed === false ? 'pending' : undefined,
+            };
+            // Clean undefined
+            Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
+            
+            await fetch(`${import.meta.env.VITE_SUPABASE_URL.replace('.supabase.co', '.supabase.co/functions/v1')}/tasks/tasks`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify(payload),
+            });
+            
+            console.log('🔄 Task update synced to server, refreshing all data...');
+            // Refresh data to ensure cross-device sync
+            get().loadFromRemote();
+          } catch (error) {
+            console.error('❌ Failed to sync task update to server:', error);
+          }
         }
       },
 
-      deleteTask: (id) => {
+      deleteTask: async (id) => {
         set((state) => ({
           tasks: state.tasks.filter((task) => task.id !== id),
         }));
+        console.log('🗑️ Task deleted locally:', id);
+        
         const token = useAuthStore.getState().token;
         if (token && import.meta.env.VITE_SUPABASE_URL) {
-          tasksAPI.delete(id, token).catch(() => {});
+          try {
+            await tasksAPI.delete(id, token);
+            console.log('🔄 Task deletion synced to server, refreshing all data...');
+            // Refresh data to ensure cross-device sync
+            get().loadFromRemote();
+          } catch (error) {
+            console.error('❌ Failed to sync task deletion to server:', error);
+          }
         }
       },
 
-      toggleTask: (id) => {
+      toggleTask: async (id) => {
         const currentTask = get().tasks.find(t => t.id === id);
         const willBeCompleted = currentTask && !currentTask.completed;
         
@@ -180,15 +221,27 @@ export const useTaskStore = create<TaskState>()(
         if (willBeCompleted) {
           playSound('complete');
         }
+        
+        console.log('✅ Task toggled locally:', id, willBeCompleted ? 'completed' : 'pending');
+        
         const token = useAuthStore.getState().token;
         if (token && import.meta.env.VITE_SUPABASE_URL) {
-          const task = get().tasks.find(t => t.id === id);
-          const status = task && !task.completed ? 'completed' : 'pending';
-          fetch(`${import.meta.env.VITE_SUPABASE_URL.replace('.supabase.co', '.supabase.co/functions/v1')}/tasks/tasks`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ id, status }),
-          }).catch(() => {});
+          try {
+            const task = get().tasks.find(t => t.id === id);
+            const status = task && task.completed ? 'completed' : 'pending';
+            
+            await fetch(`${import.meta.env.VITE_SUPABASE_URL.replace('.supabase.co', '.supabase.co/functions/v1')}/tasks/tasks`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ id, status }),
+            });
+            
+            console.log('🔄 Task toggle synced to server, refreshing all data...');
+            // Refresh data to ensure cross-device sync
+            get().loadFromRemote();
+          } catch (error) {
+            console.error('❌ Failed to sync task toggle to server:', error);
+          }
         }
       },
 

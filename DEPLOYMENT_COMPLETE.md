@@ -147,3 +147,5 @@ The application is **production-ready** with:
 *Domain: beam-app-phi.vercel.app*
 *Repository: https://github.com/Lillogorillo/Beam_App*
 
+
+
